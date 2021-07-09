@@ -1,0 +1,31 @@
+description: Scan image by docker scan
+parameters:
+  tag:
+    description: Image name and optionally tag in "name:tag" format
+    type: string
+  path:
+    description: Path to base directory to run `docker build` command
+    type: string
+    default: '.'
+  dockerfile:
+    description: Path to Dockerfile, which is relative path from "path" parameter
+    type: string
+    default: Dockerfile
+  severity:
+    description: Fail step if image has vulnerabilities with a severity above this level. Must be one of (low|medium|high).
+    type: enum
+    enum: ["low", "medium", "high"]
+    default: low
+  snyk-token:
+    description: Snyk API Token
+    type: string
+steps:
+  - run:
+      name: Scan image by docker scan
+      command: |
+        if [ "<< parameters.snyk-token >>" == "" ]; then
+            echo '"SNYK_TOKEN" is necessary if docker-scan is enabled.'
+            exit 1
+        fi
+        docker scan --accept-license --login --token "<< parameters.snyk-token >>"
+        docker scan --accept-license --file "<< parameters.path >>/<< parameters.dockerfile >>" --severity "<< parameters.severity >>" "<< parameters.tag >>"

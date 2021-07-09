@@ -1,0 +1,13 @@
+description: Install hadolint
+parameters:
+  version:
+    description: Hadolint version
+    type: string
+steps:
+  - run:
+      name: Install hadolint
+      command: |
+        curl -sL "https://github.com/hadolint/hadolint/releases/download/v<< parameters.version >>/hadolint-Linux-x86_64" -o /tmp/hadolint
+        chmod +x /tmp/hadolint
+        sudo mv /tmp/hadolint /usr/local/bin/
+

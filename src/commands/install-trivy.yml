@@ -1,0 +1,12 @@
+description: Install trivy
+parameters:
+  version:
+    description: trivy version
+    type: string
+steps:
+  - run:
+      name: Install trivy
+      command: |
+        curl -sL "https://github.com/aquasecurity/trivy/releases/download/v<< parameters.version >>/trivy_<< parameters.version >>_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz
+        tar zxf /tmp/trivy.tar.gz -C /tmp
+        sudo mv /tmp/trivy /usr/local/bin/

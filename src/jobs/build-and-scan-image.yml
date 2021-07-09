@@ -1,0 +1,119 @@
+description: Build and scan Dockerfile and container image by hadolint, dockle, trivy, docker scan
+
+executor: default
+
+parameters:
+  tag:
+    description: Image name and optionally tag in "name:tag" format
+    type: string
+  path:
+    description: Path to base directory to run `docker build` command
+    type: string
+    default: '.'
+  dockerfile:
+    description: docker scan version
+    type: string
+    default: Dockerfile
+  hadolint-enable:
+    description: Enable scanning Dockerfile by hadolint
+    type: boolean
+    default: true
+  hadolint-version:
+    description: Hadolint version
+    type: string
+    default: "2.5.0"
+  hadolint-severity:
+    description: Fail step if rules with a severity above this level are violated. Must be one of (error|warning|info|style|ignore|none).
+    type: enum
+    enum: ["error", "warning", "info", "style", "ignore", "none"]
+    default: info
+  dockle-enable:
+    description: Enable scanning image by dockle
+    type: boolean
+    default: true
+  dockle-version:
+    description: Hadolint version
+    type: string
+    default: "0.3.15"
+  dockle-severity:
+    description: Fail step if checkpoints with a severity above this level are violated. Must be one of (INFO|WARN|FATAL).
+    type: enum
+    enum: ["INFO", "WARN", "FATAL"]
+    default: WARN
+  trivy-enable:
+    description: Enable scanning image by trivy
+    type: boolean
+    default: true
+  trivy-version:
+    description: Hadolint version
+    type: string
+    default: "0.18.3"
+  trivy-severity:
+    description: Fail step if image has vulnerabilities with a severity same as this level. Must be comma-separated list of (UNKNOWN|LOW|MEDIUM|HIGH|CRITICAL).
+    type: string
+    default: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+  trivy-vuln-type:
+    description: |
+      Vulnerability types which trivy detect to.  Must be comma-separated list of (os|library).
+      If you use this action for commercial usage, you MUST set this option as "os" and use trivy without non-commercial data sources.
+    type: string
+    default: "os"
+  docker-scan-enable:
+    description: Enable scanning image by docker scan. If enabled, "docker-scan-snyk-token" must be also set.
+    type: boolean
+    default: false
+  docker-scan-version:
+    description: Hadolint version
+    type: string
+    default: "0.8.0"
+  docker-scan-severity:
+    description: Fail step if image has vulnerabilities with a severity above this level. Must be one of (low|medium|high).
+    type: enum
+    enum: ["low", "medium", "high"]
+    default: low
+  docker-scan-snyk-token:
+    description: Snyk API Token. This is necessary if "docker-scan-enable" is "true".
+    type: string
+steps:
+  - checkout
+  - when:
+      condition: << parameters.hadolint-enable >>
+      steps:
+        - install-hadolint:
+            version: << parameters.hadolint-version >>
+        - scan-image-by-hadolint:
+            path: << parameters.path >>
+            dockerfile: << parameters.dockerfile >>
+            severity: << parameters.hadolint-severity >>
+  - build-image:
+      tag: << parameters.tag >>
+      path: << parameters.path >>
+      dockerfile: << parameters.dockerfile >>
+  - when:
+      condition: << parameters.dockle-enable >>
+      steps:
+        - install-dockle:
+            version: << parameters.dockle-version >>
+        - scan-image-by-dockle:
+            tag: << parameters.tag >>
+            severity: << parameters.dockle-severity >>
+  - when:
+      condition: << parameters.trivy-enable >>
+      steps:
+        - install-trivy:
+            version: << parameters.trivy-version >>
+        - scan-image-by-trivy:
+            tag: << parameters.tag >>
+            severity: << parameters.trivy-severity >>
+            vuln-type: << parameters.trivy-vuln-type >>
+  - when:
+      condition: << parameters.docker-scan-enable >>
+      steps:
+        - install-docker-scan:
+            version: << parameters.docker-scan-version >>
+        - scan-image-by-docker-scan:
+            tag: << parameters.tag >>
+            path: << parameters.path >>
+            dockerfile: << parameters.dockerfile >>
+            severity: << parameters.docker-scan-severity >>
+            snyk-token: << parameters.docker-scan-snyk-token >>

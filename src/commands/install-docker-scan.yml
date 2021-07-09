@@ -1,0 +1,12 @@
+description: Install docker scan
+parameters:
+  version:
+    description: docker scan version
+    type: string
+steps:
+  - run:
+      name: Install docker scan
+      command: |
+        mkdir -p "${HOME}/.docker/cli-plugins"
+        curl -sL "https://github.com/docker/scan-cli-plugin/releases/download/v<< parameters.version >>/docker-scan_linux_amd64" -o "${HOME}/.docker/cli-plugins/docker-scan"
+        chmod +x "${HOME}/.docker/cli-plugins/docker-scan"

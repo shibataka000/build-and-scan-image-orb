@@ -1,0 +1,10 @@
+description: Basic usage
+usage:
+  version: 2.1
+  orbs:
+    build-and-scan-image: shibataka000/build-and-scan-image@0.0.1
+  workflows:
+    tests:
+      jobs:
+        - build-and-scan-image:
+            tag: "shibataka000/image-name:${CIRCLE_SHA1}"
