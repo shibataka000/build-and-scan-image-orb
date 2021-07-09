@@ -1,0 +1,20 @@
+description: Scan image by hadolint
+parameters:
+  path:
+    description: Path to base directory to run `docker build` command
+    type: string
+    default: '.'
+  dockerfile:
+    description: Path to Dockerfile, which is relative path from "path" parameter
+    type: string
+    default: Dockerfile
+  severity:
+    description: Fail step if rules with a severity above this level are violated. Must be one of (error|warning|info|style|ignore|none).
+    type: enum
+    enum: ["error", "warning", "info", "style", "ignore", "none"]
+    default: info
+steps:
+  - run:
+      name: Scan image by hadolint
+      command: hadolint --failure-threshold "<< parameters.severity >>" "<< parameters.path >>/<< parameters.dockerfile >>"
+

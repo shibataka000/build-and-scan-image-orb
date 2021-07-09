@@ -1,0 +1,67 @@
+version: 2.1
+
+# These parameters are used internally by orb-tools.
+parameters:
+  run-integration-tests:
+    description: An internal flag to prevent integration test from running before a development version has been created.
+    type: boolean
+    default: false
+  dev-orb-version:
+    description: |
+      The development version of the orb to test.
+      This value is automatically adjusted by the "trigger-integration-tests-workflow" job to correspond with the specific version created by the commit and should not be edited.
+      A "dev:alpha" version must exist for the initial pipeline run.
+    type: string
+    default: "dev:alpha"
+
+orbs:
+  build-and-scan-image: shibataka000/build-and-scan-image@<<pipeline.parameters.dev-orb-version>>
+  orb-tools: circleci/orb-tools@10.0
+
+workflows:
+  tests:
+    unless: << pipeline.parameters.run-integration-tests >>
+    jobs:
+      - orb-tools/lint
+      - orb-tools/pack
+      - orb-tools/publish-dev:
+          orb-name: shibataka000/build-and-scan-image
+          context: orb-publishing
+          requires:
+            - orb-tools/lint
+            - orb-tools/pack
+      - orb-tools/trigger-integration-tests-workflow:
+          name: trigger-integration-test
+          context: orb-publishing
+          requires:
+            - orb-tools/publish-dev
+
+  integration-tests:
+    when: << pipeline.parameters.run-integration-tests >>
+    jobs:
+      - build-and-scan-image/build-and-scan-image:
+          name: build-and-scan-image
+          path: ./testdata
+          tag: testdata:${CIRCLE_SHA1}
+          docker-scan-enable: true
+          docker-scan-snyk-token: ${SNYK_TOKEN}
+
+  publish:
+    when:
+      matches:
+        pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+        value: << pipeline.git.tag >>
+    jobs:
+      - orb-tools/pack
+      - orb-tools/publish:
+          pre-steps:
+            - run:
+                name: "Define version which orb will be published as"
+                command: |
+                  SEMVER=$(echo "${CIRCLE_TAG}" | sed -e "s/v//g")
+                  echo 'export SEMVER="${SEMVER}"' >> ${BASH_ENV}
+          orb-ref: shibataka000/build-and-scan-image@${SEMVER}
+          attach-workspace: true
+          context: orb-publishing
+          requires:
+            - orb-tools/pack

@@ -1,0 +1,25 @@
+description: Full options
+usage:
+  version: 2.1
+  orbs:
+    build-and-scan-image: shibataka000/build-and-scan-image@0.0.1
+  workflows:
+    tests:
+      jobs:
+        - build-and-scan-image:
+            tag: "shibataka000/image-name:${CIRCLE_SHA1}"
+            path: "."
+            dockerfile: Dockerfile
+            hadolint-enable: true
+            hadolint-version: "2.5.0"
+            hadolint-severity: info
+            dockle-enable: true
+            dockle-version: "0.3.15"
+            dockle-severity: WARN
+            trivy-enable: true
+            trivy-version: "0.18.3"
+            trivy-severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+            trivy-vuln-type: os
+            docker-scan-enable: false
+            docker-scan-severity: low
+            docker-scan-snyk-token: ${SNYK_TOKEN}

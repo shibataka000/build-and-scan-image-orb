@@ -1,0 +1,12 @@
+description: Install dockle
+parameters:
+  version:
+    description: dockle version
+    type: string
+steps:
+  - run:
+      name: Install dockle
+      command: |
+        curl -sL "https://github.com/goodwithtech/dockle/releases/download/v<< parameters.version >>/dockle_<< parameters.version >>_Linux-64bit.tar.gz" -o /tmp/dockle.tar.gz
+        tar zxf /tmp/dockle.tar.gz -C /tmp
+        sudo mv /tmp/dockle /usr/local/bin/

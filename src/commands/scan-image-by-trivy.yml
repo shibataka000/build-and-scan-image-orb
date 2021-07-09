@@ -1,0 +1,20 @@
+description: Scan image by trivy
+parameters:
+  tag:
+    description: Image name and optionally tag in "name:tag" format
+    type: string
+  severity:
+    description: Fail step if image has vulnerabilities with a severity same as this level. Must be comma-separated list of (UNKNOWN|LOW|MEDIUM|HIGH|CRITICAL).
+    type: string
+    default: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+  vuln-type:
+    description: |
+      Vulnerability types which trivy detect to.  Must be comma-separated list of (os|library).
+      If you use this action for commercial usage, you MUST set this option as "os" and use trivy without non-commercial data sources.
+    type: string
+    default: "os"
+steps:
+  - run:
+      name: Scan image by trivy
+      command: trivy image --exit-code 1 --severity "<< parameters.severity >>" --no-progress --vuln-type "<< parameters.vuln-type >>" "<< parameters.tag >>"
+

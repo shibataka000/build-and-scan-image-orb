@@ -1,0 +1,15 @@
+description: Scan image by dockle
+parameters:
+  tag:
+    description: Image name and optionally tag in "name:tag" format
+    type: string
+  severity:
+    description: Fail step if checkpoints with a severity above this level are violated. Must be one of (INFO|WARN|FATAL).
+    type: enum
+    enum: ["INFO", "WARN", "FATAL"]
+    default: WARN
+steps:
+  - run:
+      name: Scan image by dockle
+      command: dockle --exit-code 1 --exit-level "<< parameters.severity >>" "<< parameters.tag >>"
+
