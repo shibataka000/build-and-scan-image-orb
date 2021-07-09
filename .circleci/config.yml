@@ -47,21 +47,22 @@ workflows:
           docker-scan-snyk-token: ${SNYK_TOKEN}
 
   publish:
-    when:
-      matches:
-        pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
-        value: << pipeline.git.tag >>
     jobs:
-      - orb-tools/pack
+      - orb-tools/pack:
+          name: orb-tools/pack
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+\.[0-9]+\.[0-9]+/
       - orb-tools/publish:
-          pre-steps:
-            - run:
-                name: "Define version which orb will be published as"
-                command: |
-                  SEMVER=$(echo "${CIRCLE_TAG}" | sed -e "s/v//g")
-                  echo 'export SEMVER="${SEMVER}"' >> ${BASH_ENV}
-          orb-ref: shibataka000/build-and-scan-image@${SEMVER}
+          orb-ref: shibataka000/build-and-scan-image@$(echo "${CIRCLE_TAG}" | sed -e "s/v//g")
           attach-workspace: true
           context: orb-publishing
           requires:
             - orb-tools/pack
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+\.[0-9]+\.[0-9]+/
