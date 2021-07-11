@@ -9,6 +9,8 @@ Build and scan Dockerfile and container image by following tools.
 - [trivy](https://github.com/aquasecurity/trivy)
 - [docker scan](https://github.com/docker/scan-cli-plugin) (option)
 
+You can also see this orb in [CircleCI Developer Hub - shibataka000/build-and-scan-image](https://circleci.com/developer/orbs/orb/shibataka000/build-and-scan-image).
+
 ## Usage
 
 ### Examples
